@@ -1,2 +1,2 @@
 # FPVNet
-Towards Fusing Point Cloud and Visual Representations for Imitation Learning
+The code is under cleaning and will be released soon.
