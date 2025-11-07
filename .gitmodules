@@ -1,0 +1,3 @@
+[submodule "custom_robocasa"]
+	path = custom_robocasa
+	url = https://github.com/ALRhub/custom_robocasa
