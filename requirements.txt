@@ -1,0 +1,39 @@
+hydra-core==1.2.0
+# numpy
+wandb==0.19.1
+# easydict
+# transformers
+# opencv-python
+einops==0.4.1
+# thop
+# bddl
+# future
+# matplotlib
+# cloudpickle
+# gym
+# numexpr
+# h5py
+torchsde==0.2.6
+torchdiffeq==0.2.5
+# imageio[ffmpeg]
+ftfy==6.3.1
+# pygame #==2.5.2
+# pygments #==2.16.1
+# pymunk #==6.6.0
+# scikit-image #==0.19.3
+# shapely #==2.0.3
+regex==2024.11.6
+timm==0.4.12
+PyOpenGL-accelerate==3.1.9
+# DP3
+dill==0.3.5.1
+diffusers==0.11.1
+huggingface_hub==0.25.0
+zarr==2.12.0
+# 3DA
+--find-links https://data.dgl.ai/wheels/torch-2.4/cu124/repo.html
+dgl
+packaging
+ninja
+flash-attn==2.7.2.post1
+git+https://github.com/openai/CLIP.git

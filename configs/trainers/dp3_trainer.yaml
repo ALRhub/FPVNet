@@ -1,0 +1,23 @@
+_target_: trainers.dp3_trainer.DP3Trainer
+_recursive_: false
+
+obs_seq_len: ${obs_seq_len}
+
+trainset: ${trainset}
+
+train_batch_size: ${train_batch_size}
+num_workers: ${num_workers}
+epoch: ${epoch}
+device: ${device}
+use_lr_scheduler: True
+save_every_n_epochs: 100
+
+ema_model:
+  _target_: agents.models.dp3.model.diffusion.ema_model.EMAModel
+  update_after_step: 0
+  inv_gamma: 1.0
+  power: 0.75
+  min_value: 0.0
+  max_value: 0.9999
+
+if_use_ema: False

@@ -1,0 +1,4 @@
+_target_:  agents.encoders.clip_lang_encoder.LangClip
+_recursive_: false
+
+model_name: "ViT-B/32"

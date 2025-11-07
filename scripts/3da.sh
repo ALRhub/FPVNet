@@ -1,0 +1,10 @@
+python run.py --config-name=robocasa_3da_config \
+    --multirun agents=diffuser_actor_agent \
+    agent_name=3da \
+    scale_data=False \
+    use_full_point_cloud=True \
+    use_sampled_point_cloud=False \
+    use_segmented_point_cloud=False \
+    use_pc_color=True \
+    env_group=pnp1,pnp2,doors,drawer,stove,coffee,buttons,sink \
+    seed=0,1,2

@@ -1,0 +1,10 @@
+_target_: agents.encoders.sugar_pc_encoder.SUGARPCEncoder
+_recursive_: false
+
+num_groups: 256
+group_size: 32
+
+ckpt_path: /home/donat/projects/FPVNet/agents/encoders/sugar/pretrain/objaverse4-nolvis/multiobjrandcam1-pc4096.g256.s32-mae.color.0.05-csc.l1.txt.img-openclip-scene.mae.csc.obj.ref-multi.grasp-nodetach-init.objaverse_nolvis.single/ckpts/model_step_200000.pt
+
+freeze_backbone: false
+device: ${device}

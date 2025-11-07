@@ -1,0 +1,47 @@
+_target_: agents.encoders.pc_img_transformer_encoder.PcImgTransformerEncoder
+_recursive_: false
+
+use_global_pc_emb: False
+use_global_img_emb: True
+
+pc_encoder:
+  _target_: agents.encoders.sugar_pc_encoder.SUGARPCEncoder
+  _recursive_: false
+
+  ckpt_path: /home/donat/projects/FPVNet/agents/encoders/sugar/pretrain/objaverse4-nolvis/multiobjrandcam1-pc4096.g256.s32-mae.color.0.05-csc.l1.txt.img-openclip-scene.mae.csc.obj.ref-multi.grasp-nodetach-init.objaverse_nolvis.single/ckpts/model_step_200000.pt
+
+  freeze_backbone: true
+  device: ${device}
+  unfreeze_last_n_layers: ${unfreeze_last_n_layers}
+
+img_encoder:
+  _target_: agents.encoders.multi_image_obs_encoder.MultiImageObsEncoder
+  _recursive_: false
+
+  shape_meta: ${shape_meta}
+
+  rgb_model:
+    _target_: agents.encoders.pretrained_resnets.FiLMResNet18LocalPolicy
+    condition_dim: ${goal_dim}
+
+  resize_shape: null
+  share_rgb_model: False
+  imagenet_norm: True
+
+attn_model:
+  _target_: agents.backbones.transformer.blocks.TransformerEncoder
+  _recursive_: false
+
+  embed_dim: ${latent_dim}
+  n_heads: 8
+  n_layers: 4
+  attn_pdrop: 0.3
+  resid_pdrop: 0.1
+  mlp_pdrop: 0.1
+  bias: False
+
+latent_dim: ${latent_dim}
+
+pc_emb_dim: 384
+img_emb_dim: 512
+img_num_tokens: 51

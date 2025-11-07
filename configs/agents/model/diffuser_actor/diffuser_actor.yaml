@@ -1,0 +1,17 @@
+_target_: agents.models.diffuser_actor.diffuser_actor.DiffuserActor
+_recursive_: false
+
+backbone: clip
+image_size: 
+  - ${img_width}
+  - ${img_height}
+embedding_dim: 120 # needs to be divisible by 3
+num_vis_ins_attn_layers: 2
+use_instruction: True
+fps_subsampling_factor: 5
+rotation_parametrization: 6D
+quaternion_format: xyzw
+diffusion_timesteps: 100
+nhist: ${obs_seq_len}
+relative: True
+lang_enhanced: True

@@ -1,0 +1,22 @@
+_target_: agents.diffuser_actor_agent.DiffuserActorAgent
+_recursive_: false
+
+defaults:
+  - model: diffuser_actor/diffuser_actor
+  - obs_encoders: pretrained_resnet_film # This is not used, only a placeholder for BaseAgent
+  - language_encoders: clip
+
+optimization:
+  _target_: torch.optim.Adam
+  lr: 1e-4
+  weight_decay: 5e-4
+
+obs_seq_len: ${obs_seq_len}
+act_seq_len: ${act_seq_len}
+
+cam_names: ${camera_names}
+
+device: ${device}
+state_dim: ${obs_dim}
+latent_dim: ${latent_dim}
+

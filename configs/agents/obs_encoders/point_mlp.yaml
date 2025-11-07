@@ -1,0 +1,8 @@
+_target_: agents.encoders.point_mlp_encoder.PointMLPEncoder
+_recursive_: false
+
+use_pc_color: ${use_pc_color}
+out_channels: ${latent_dim}
+use_layer_norm: ${use_layer_norm}
+use_final_layer_norm: ${use_final_layer_norm}
+use_max_pool: ${use_max_pool}

@@ -1,0 +1,71 @@
+_target_: agents.models.dp3.dp3_policy.DP3
+_recursive_: false
+
+shape_meta:
+  obs:
+    point_cloud:
+      shape:
+        - ${point_cloud_num_points}
+        - 3
+      type: point_cloud
+    agent_pos:
+      shape:
+        - ${obs_dim}
+      type: low_dim
+  action:
+    shape:
+      - ${action_dim}
+    type: low_dim
+
+pc_encoder:
+  _target_: agents.models.dp3.model.vision.pointnet_extractor.DP3Encoder
+  _recursive_: false
+
+  out_channel: 64
+  pointcloud_encoder_cfg:
+    in_channels: 3
+    out_channels: ${agents.model.pc_encoder.out_channel}
+    use_layernorm: true
+    final_norm: layernorm # layernorm, none
+    normal_channel: false
+  use_pc_color: ${use_pc_color}
+  pointnet_type: "pointnet"
+
+noise_pred_net:
+  _target_: agents.models.dp3.model.diffusion.conditional_unet1d.ConditionalUnet1D
+  _recursive_: false
+
+  local_cond_dim: null
+  diffusion_step_embed_dim: ${n_embd}
+  down_dims:
+  - 512
+  - 1024
+  - 2048
+  kernel_size: 5
+  n_groups: 8
+  condition_type: ${agents.model.condition_type}
+  use_down_condition: true
+  use_mid_condition: true
+  use_up_condition: true
+
+noise_scheduler:
+  _target_: diffusers.schedulers.scheduling_ddim.DDIMScheduler
+  _recursive_: false
+
+  num_train_timesteps: 100
+  beta_start: 0.0001
+  beta_end: 0.02
+  beta_schedule: squaredcos_cap_v2
+  clip_sample: True
+  set_alpha_to_one: True
+  steps_offset: 0
+  prediction_type: sample
+
+horizon: ${pred_seq_len}
+n_action_steps: ${act_seq_len}
+n_obs_steps: ${obs_seq_len}
+num_inference_steps: 10
+obs_as_global_cond: True
+condition_type: film
+use_pc_color: ${use_pc_color}
+lang_embedding_dim: 512

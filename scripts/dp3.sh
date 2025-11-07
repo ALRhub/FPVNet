@@ -1,0 +1,12 @@
+python run.py --config-name=robocasa_dp3_config \
+    --multirun agents=dp3_agent \
+    trainers=dp3_trainer \
+    agent_name=dp3 \
+    agents/model=dp3/dp3_policy \
+    scale_data=False \
+    use_full_point_cloud=False \
+    use_sampled_point_cloud=True \
+    use_segmented_point_cloud=False \
+    use_pc_color=False \
+    env_group=pnp1,pnp2,doors,drawer,stove,coffee,buttons,sink \
+    seed=0,1,2

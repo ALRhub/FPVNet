@@ -1,0 +1,152 @@
+defaults:
+  - agents: beso_agent
+  - trainers: base_trainer
+  # - override hydra/launcher: "submitit_slurm"
+
+agent_name: beso
+log_dir: logs/${env_group}/
+
+# insert wandb here
+wandb:
+  entity: tiger_or_cat
+  project: atalay_robocasa_final
+  group: ${env_group}
+  mode: disabled 
+  # mode: online
+
+
+hydra:
+  mode: MULTIRUN # needed for launcher to be used
+  run:
+    dir: ${log_dir}/runs/${agent_name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: True
+  sweep:
+    dir: ${log_dir}/sweeps/${agent_name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.override_dirname}
+  # launcher:
+  #   account: hk-project-sustainebot
+  #   timeout_min: 600
+  #   name: robocasa #${hydra.job.name}
+  #   partition: accelerated
+  #   gres: gpu:1
+
+# env_name: CloseSingleDoor
+env_group: pnp
+seed: 42
+camera_names:
+  - "robot0_agentview_left"
+  - "robot0_agentview_right"
+  - "robot0_eye_in_hand"
+num_cameras: 3
+
+dataset_path: /hkfs/work/workspace/scratch/ll6323-david_dataset_2/robocasa_datasets/v0.1/single_stage
+
+# Model Setting
+window_size: ${add:${obs_seq_len},${pred_seq_len},-1}
+obs_seq_len: 1
+act_seq_len: 10
+pred_seq_len: 10
+multistep: ${window_size} # only for inference, could be different from act_seq_len
+goal_window_size: 1
+
+goal_conditioned: True
+
+# Training
+train_batch_size: 256
+val_batch_size: 1
+num_workers: 16
+pin_memory: True
+device: "cuda"
+epoch: 100
+eval_every_n_epochs: 1
+scale_data: True
+scaler_type: "minmax"
+
+if_use_ema: True
+
+## Environment
+obs_dim: 8
+action_dim: 8
+max_len_data: 260 # not used
+
+point_cloud_num_points: 1024
+obj_max_num_points: 512
+use_segmented_point_cloud: False
+use_full_point_cloud: False
+use_sampled_point_cloud: True
+use_pc_color: False
+
+
+obs_tokens: ${point_cloud_num_points}
+
+## Observations
+if_robot_states: False
+img_width: 128
+img_height: 128
+shape_meta:
+  # acceptable types: rgb, low_dim
+  obs:
+    robot0_eye_in_hand_image:
+      shape:
+        - 3
+        - ${img_height}
+        - ${img_width}
+      type: rgb
+    robot0_agentview_left_image:
+      shape:
+        - 3
+        - ${img_height}
+        - ${img_width}
+      type: rgb
+    robot0_agentview_right_image:
+      shape:
+        - 3
+        - ${img_height}
+        - ${img_width}
+      type: rgb
+
+##########################################################################################
+# Common Parameters
+##########################################################################################
+n_embd: 128
+goal_dim: 512
+latent_dim: 512
+
+trainset:
+  _target_: environments.dataset.robocasa_3da_dataset.RobocasaDataset
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  device: ${device}
+  window_size: ${window_size}
+  obs_seq_len: ${obs_seq_len}
+  img_width: ${img_width}
+  img_height: ${img_height}
+  env_group: ${env_group}
+
+valset:
+  _target_: environments.dataset.robocasa_3da_dataset.RobocasaDataset
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  device: ${device}
+  window_size: ${window_size}
+  obs_seq_len: ${obs_seq_len}
+  img_width: ${img_width}
+  img_height: ${img_height}
+  env_group: ${env_group}
+
+simulation:
+  _target_: simulation.robocasa_pc_sim.RoboCasaSim
+  env_group: ${env_group}
+  camera_names: ${camera_names}
+  seed: ${seed}
+  device: ${device}
+  img_height: ${img_height}
+  img_width: ${img_width}
+  num_episode: 50
+  render: False
+  if_vision: True
+  use_full_point_cloud: ${use_full_point_cloud}
+  use_segmented_point_cloud: ${use_segmented_point_cloud}
+  use_sampled_point_cloud: ${use_sampled_point_cloud}
+  use_pc_color: ${use_pc_color}

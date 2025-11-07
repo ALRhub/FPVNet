@@ -1,0 +1,251 @@
+defaults:
+  - agents: beso_agent
+  - trainers: base_trainer
+  - override hydra/launcher: "submitit_slurm"
+
+agent_name: beso
+log_dir: logs/${env_group}/
+
+# insert wandb here
+wandb:
+  entity: tiger_or_cat
+  project: atalay_robocasa_new_seeds
+
+group: bc_${env_group}
+
+hydra:
+  mode: MULTIRUN # needed for launcher to be used
+  run:
+    dir: ${log_dir}/runs/${agent_name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: True
+  sweep:
+    dir: ${log_dir}/sweeps/${agent_name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.override_dirname}
+  launcher:
+    account: hk-project-sustainebot
+    timeout_min: 900
+    name: robocasa #${hydra.job.name}
+    partition: accelerated
+    gres: gpu:1
+
+# env_name: CloseSingleDoor
+env_group: doors
+seed: 42
+camera_names:
+  - "robot0_agentview_left"
+  - "robot0_agentview_right"
+  - "robot0_eye_in_hand"
+num_cameras: 3
+
+dataset_path: /hkfs/work/workspace/scratch/ll6323-david_dataset_2/robocasa_datasets/v0.1/single_stage
+
+# Model Setting
+window_size: ${add:${obs_seq_len},${pred_seq_len},-1}
+obs_seq_len: 1
+act_seq_len: 10
+pred_seq_len: 10
+multistep: ${window_size} # only for inference, could be different from act_seq_len
+goal_window_size: 1
+
+goal_conditioned: True
+
+# Training
+train_batch_size: 256
+val_batch_size: 1
+num_workers: 16
+pin_memory: True
+device: "cuda"
+epoch: 100
+eval_every_n_epochs: 1
+scale_data: True
+scaler_type: "minmax"
+
+if_use_ema: True
+
+## Environment
+obs_dim: 8
+action_dim: 7
+max_len_data: 260 # not used
+
+# point_cloud_num_points: 1024
+# obj_max_num_points: 512
+# use_segmented_point_cloud: False
+# use_full_point_cloud: True
+# use_sampled_point_cloud: True
+use_pc_color: False
+
+global_action: False
+
+# obs_tokens: 768 # ViT-S/8
+# obs_tokens: 3072 # RN50
+# obs_tokens: 147 # ViT-B/32
+# obs_tokens: ${point_cloud_num_points}
+# obs_tokens: ${agents.obs_encoders.num_groups} # SUGAR
+obs_tokens: ${pc_num_group}
+# obs_tokens: 3
+
+k_nearest_points: 4
+
+## Observations
+if_film_condition: False
+if_robot_states: False
+img_width: 128
+img_height: 128
+shape_meta:
+  # acceptable types: rgb, low_dim
+  obs:
+    robot0_eye_in_hand_image:
+      shape:
+        - 3
+        - ${img_height}
+        - ${img_width}
+      type: rgb
+    robot0_agentview_left_image:
+      shape:
+        - 3
+        - ${img_height}
+        - ${img_width}
+      type: rgb
+    robot0_agentview_right_image:
+      shape:
+        - 3
+        - ${img_height}
+        - ${img_width}
+      type: rgb
+
+##########################################################################################
+# Common Parameters
+##########################################################################################
+n_embd: 128
+goal_dim: 512
+# latent_dim: 512
+# latent_dim: 384 # SUGAR
+# latent_dim: 512 # ViT-B/32
+# latent_dim: 259 # RN50
+# latent_dim: 387 # DINO ViT-S/8
+# latent_dim: ${mul:${agents.obs_encoders.xyz_encoder.out_channels},2}
+latent_dim: 512
+
+##########################################################################################
+# Transformer Parameters (encoder-decoder)
+##########################################################################################
+encoder_n_layer: 6
+decoder_n_layer: 6
+n_heads: 8
+use_pos_emb: False
+
+##########################################################################################
+# Diffusion Parameters
+##########################################################################################
+condition_on_diffusion_timestep: False
+
+##########################################################################################
+# Mamba Parameters
+##########################################################################################
+Mamba_type: Mamba2
+
+mamba_n_layer_encoder: 10
+mamba_encoder_cfg:
+  layer: ${Mamba_type}
+  d_state: 64
+  d_conv: 4
+  expand: 2
+
+mamba_n_layer_decoder: 10
+mamba_decoder_cfg:
+  layer: ${Mamba_type}
+  d_state: 64
+  d_conv: 4
+  expand: 2
+
+##########################################################################################
+# xLSTM Parameters
+##########################################################################################
+xlstm_encoder_blocks: 8
+xlstm_encoder_vocab_size: 266 # 1 + 1 + obs_tokens + act_seq_len
+xlstm_encoder_chunkwise_kernel: chunkwise--native_autograd
+xlstm_encoder_mode: train_with_padding
+xlstm_encoder_adaLN_zero: False
+xlstm_encoder_in_context_cond: False
+
+xlstm_decoder_blocks: 8
+xlstm_decoder_vocab_size: 11
+xlstm_decoder_chunkwise_kernel: "parallel--native_autograd"
+xlstm_decoder_mode: "train"
+xlstm_decoder_adaLN_zero: False
+xlstm_decoder_in_context_cond: False
+
+##########################################################################################
+# Point MLP Parameters
+##########################################################################################
+use_layer_norm: true
+use_final_layer_norm: true
+use_max_pool: true
+
+pc_num_group: 256
+pc_group_size: 32
+sampled_pc_size: 4096
+normalize_neighborhood: False
+
+##########################################################################################
+# SUGAR
+##########################################################################################
+unfreeze_last_n_layers: 6
+
+trainset:
+  _target_: environments.dataset.robocasa_pc_dataset_group_img.RobocasaDataset
+  data_directory: ${dataset_path}
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  cam_names: ${camera_names}
+  device: cpu
+  max_len_data: ${max_len_data}
+  window_size: ${window_size}
+  global_action: ${global_action}
+  obs_seq_len: ${obs_seq_len}
+  img_width: ${img_width}
+  img_height: ${img_height}
+  env_group: ${env_group}
+  pc_num_group: ${pc_num_group}
+  pc_group_size: ${pc_group_size}
+  sampled_pc_size: ${sampled_pc_size}
+  use_pc_color: ${use_pc_color}
+  normalize_neighborhood: ${normalize_neighborhood}
+
+valset:
+  _target_: environments.dataset.robocasa_pc_dataset_group_img.RobocasaDataset
+  data_directory: ${dataset_path}
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  cam_names: ${camera_names}
+  device: ${device}
+  max_len_data: ${max_len_data}
+  window_size: ${window_size}
+  global_action: ${global_action}
+  obs_seq_len: ${obs_seq_len}
+  img_width: ${img_width}
+  img_height: ${img_height}
+  env_group: ${env_group}
+  pc_num_group: ${pc_num_group}
+  pc_group_size: ${pc_group_size}
+  sampled_pc_size: ${sampled_pc_size}
+
+simulation:
+  _target_: simulation.mp_robocasa_pc_group_img_sim.RoboCasaSim
+  env_group: ${env_group}
+  data_directory: ${dataset_path}
+  camera_names: ${camera_names}
+  seed: ${seed}
+  device: ${device}
+  img_height: ${img_height}
+  img_width: ${img_width}
+  num_episode: 50
+  max_step_per_episode: 400
+  render: False
+  if_vision: True
+  global_action: ${global_action}
+  use_pc_color: ${use_pc_color}
+  pc_num_group: ${pc_num_group}
+  pc_group_size: ${pc_group_size}
+  sampled_pc_size: ${sampled_pc_size}

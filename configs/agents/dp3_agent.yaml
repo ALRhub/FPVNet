@@ -1,0 +1,25 @@
+_target_: agents.dp3_agent.DP3Agent
+_recursive_: false
+
+defaults:
+  - model: dp3/dp3_policy
+  - obs_encoders: pretrained_resnet_film # This is not used, only a placeholder for BaseAgent
+  - language_encoders: clip
+
+optimization:
+  _target_: torch.optim.AdamW
+  lr: 1.0e-4
+  betas: [0.95, 0.999]
+  eps: 1.0e-8
+  weight_decay: 1.0e-6
+
+lr_scheduler:
+  name: cosine
+  num_warmup_steps: 500
+
+device: ${device}
+state_dim: ${obs_dim}
+latent_dim: ${latent_dim}
+obs_seq_len: ${obs_seq_len}
+act_seq_len: ${act_seq_len}
+cam_names: ${camera_names}
